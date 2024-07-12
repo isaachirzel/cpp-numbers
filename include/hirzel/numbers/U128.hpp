@@ -17,6 +17,8 @@ namespace hirzel::numbers
 
 	public:
 
+		static const U128 zero;
+		static const U128 one;
 		static const U128 max;
 
 	private:

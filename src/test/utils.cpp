@@ -67,7 +67,7 @@ namespace test
 		catch (const std::exception& e)
 		{
 			fail();
-			std::cout << "\n\t" RED "Exception" RESET ": " << e.what();
+			std::cout << "\n    " RED "Exception" RESET ": " << e.what();
 		}
 
 		std::cout << std::endl;

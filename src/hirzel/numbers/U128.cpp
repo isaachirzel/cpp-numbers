@@ -15,6 +15,8 @@ namespace hirzel::numbers
 	thread_local bool U128::_hasOverflown;
 
 	const U128 U128::max = U128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+	const U128 U128::zero = U128(0, 0);
+	const U128 U128::one = U128(0, 1);
 
 	U128::U128(u64 high, u64 low):
 		_low(low),
@@ -142,7 +144,7 @@ namespace hirzel::numbers
 
 	U128 U128::operator+(const U128& addend) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 
 		result._low += addend._low;
 		result._high += addend._high;
@@ -161,7 +163,7 @@ namespace hirzel::numbers
 
 	U128 U128::operator+(u64 addend) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 
 		result._low += addend;
 
@@ -184,7 +186,7 @@ namespace hirzel::numbers
 
 	U128 U128::operator-(const U128& subtrahend) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 
 		result._low -= subtrahend._low;
 		result._high -= subtrahend._high;
@@ -203,7 +205,7 @@ namespace hirzel::numbers
 
 	U128 U128::operator-(u64 subtrahend) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 
 		result._low -= subtrahend;
 
@@ -235,14 +237,14 @@ namespace hirzel::numbers
 
 	U128 U128::operator*(u64 multiplier) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 		// TODO: Implement this
 		return result;
 	}
 
 	U128 U128::operator*(u32 multiplier) const
 	{
-		auto result = *this;
+		auto result = U128(*this);
 		auto carry = multiply(result, multiplier);
 
 		if (carry)
@@ -255,27 +257,44 @@ namespace hirzel::numbers
 
 	U128 U128::operator/(const U128& divisor) const
 	{
-		auto result = *this;
+		if ((divisor._high | divisor._low) == 0)
+		{
+			handleOverflow(*this, divisor, '/');
+			
+			return U128::max;
+		}
+
+		auto result = U128(*this);
 		
 		return result;
 	}
 
 	U128 U128::operator/(u64 divisor) const
 	{
-		auto result = *this;
+		if (divisor == 0)
+		{
+			handleOverflow(*this, U128(0, divisor), '/');
+			
+			return U128::max;
+		}
+
+		auto result = U128(*this);
 		
 		return result;
 	}
 
 	U128 U128::operator/(u32 divisor) const
 	{
-		auto result = *this;
-		u32 remainder = divide(result, divisor);
-
-		if (remainder)
+		if (divisor == 0)
 		{
-			handleOverflow(*this, U128(0, divisor), '+');
+			handleOverflow(*this, U128(0, divisor), '/');
+
+			return U128::max;
 		}
+
+		auto result = U128(*this);
+		
+		divide(result, divisor);
 
 		return result;
 	}

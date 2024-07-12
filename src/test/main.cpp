@@ -4,7 +4,7 @@
 
 int main()
 {
-	test::section("u128", test::test_u128);
+	test::section("U128", test::test_u128);
 
 	return 0;
 }
