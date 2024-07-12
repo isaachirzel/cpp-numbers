@@ -13,7 +13,11 @@ namespace hirzel::numbers
 		uint64_t _high;
 
 		static std::function<void(const U128&, const U128&, char)> _onOverflow;
-		static bool _hasOverflown;
+		static thread_local bool _hasOverflown;
+
+	public:
+
+		static const U128 max;
 
 	private:
 
@@ -23,13 +27,14 @@ namespace hirzel::numbers
 	public:
 
 		U128();
-		U128(uint64_t low, uint64_t high);
+		U128(uint64_t high, uint64_t low);
 		U128(U128&&) = default;
 		U128(const U128&) = default;
 		U128& operator=(U128&&) = default;
 		U128& operator=(const U128&) = default;
 
 		static void setOverflowCallback(std::function<void(const U128&, const U128&, char)>&& callback);
+		static bool hasOverflown();
 		static void clearOverflow();
 		static U128 fromMul(uint64_t l, uint64_t r);
 
@@ -67,6 +72,9 @@ namespace hirzel::numbers
 		// U128 operator*(const U128& other);
 		// U128 operator/(const U128& other);
 
+
+		const auto& low() const { return _low; }
+		const auto& high() const { return _high; }
 
 		friend std::ostream& operator<<(std::ostream& out, const U128& i);
 	};

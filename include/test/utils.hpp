@@ -5,6 +5,7 @@
 
 namespace test
 {
+	void confirm(bool condition, const char *error);
 	void section(const char *subject, std::function<void()>&& function);
 	void run(const char *name, std::function<void()>&& function);
 }

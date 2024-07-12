@@ -12,9 +12,11 @@ namespace hirzel::numbers
 	using u32 = uint32_t;
 
 	std::function<void(const U128&, const U128&, char op)> U128::_onOverflow;
-	bool U128::_hasOverflown;
+	thread_local bool U128::_hasOverflown;
 
-	U128::U128(u64 low, u64 high):
+	const U128 U128::max = U128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+
+	U128::U128(u64 high, u64 low):
 		_low(low),
 		_high(high)
 	{}
@@ -27,6 +29,11 @@ namespace hirzel::numbers
 	void U128::setOverflowCallback(std::function<void(const U128&, const U128&, char)>&& callback)
 	{
 		_onOverflow = std::move(callback);
+	}
+
+	bool U128::hasOverflown()
+	{
+		return _hasOverflown;
 	}
 
 	void U128::clearOverflow()
@@ -164,7 +171,7 @@ namespace hirzel::numbers
 
 		if (result._high < _high)
 		{
-			handleOverflow(*this, U128(addend, 0), '+');
+			handleOverflow(*this, U128(0, addend), '+');
 		}
 		
 		return result;
@@ -206,7 +213,7 @@ namespace hirzel::numbers
 
 		if (result._high > _high)
 		{
-			handleOverflow(*this, U128(subtrahend, 0), '-');
+			handleOverflow(*this, U128(0, subtrahend), '-');
 		}
 		
 		return result;
@@ -240,7 +247,7 @@ namespace hirzel::numbers
 
 		if (carry)
 		{
-			handleOverflow(*this, U128(multiplier, 0), '*');
+			handleOverflow(*this, U128(0, multiplier), '*');
 		}
 
 		return result;
@@ -267,7 +274,7 @@ namespace hirzel::numbers
 
 		if (remainder)
 		{
-			handleOverflow(*this, U128(divisor, 0), '+');
+			handleOverflow(*this, U128(0, divisor), '+');
 		}
 
 		return result;
