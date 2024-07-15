@@ -8,27 +8,40 @@ namespace test
 {
 	void test_addition()
 	{
+		expect(Decimal(0) + Decimal(0), Decimal(0));
+		expect(Decimal(0) + Decimal(1), Decimal(1));
 		expect(Decimal(0) + Decimal(-1), Decimal(-1));
-		// expect(Decimal(0) + Decimal(0), Decimal(0));
-		// expect(Decimal(0) + Decimal(1), Decimal(1));
-		// expect(Decimal(-1) + Decimal(1), Decimal(0));
-		// expect(Decimal(3) + Decimal(2), Decimal(5));
-		// expect(Decimal(-3) + Decimal(2), Decimal(-1));
+		expect(Decimal(-1) + Decimal(1), Decimal(0));
+		expect(Decimal(3) + Decimal(2), Decimal(5));
+		expect(Decimal(-3) + Decimal(2), Decimal(-1));
 	}
 
 	void test_subtraction()
 	{
-		auto decimal = Decimal();
+		expect(Decimal(0) - Decimal(0), Decimal(0));
+		expect(Decimal(0) - Decimal(1), Decimal(-1));
+		expect(Decimal(0) - Decimal(-1), Decimal(1));
+		expect(Decimal(-1) - Decimal(-1), Decimal(0));
+		expect(Decimal(1) - Decimal(1), Decimal(0));
+		expect(Decimal(3) - Decimal(2), Decimal(1));
+		expect(Decimal(-3) - Decimal(2), Decimal(-5));
 	}
 
 	void test_multiplication()
 	{
-		auto decimal = Decimal();
+		expect(Decimal(0) * Decimal(0), Decimal(0));
+		expect(Decimal(1) * Decimal(0), Decimal(0));
+		expect(Decimal(1) * Decimal(1), Decimal(1));
+		expect(Decimal(1) * Decimal(-1), Decimal(-1));
+		expect(Decimal(-1) * Decimal(-1), Decimal(1));
+		expect(Decimal(-3) * Decimal(5), Decimal(-15));
+		expect(Decimal(-3) * Decimal(-5), Decimal(15));
+		expect(Decimal(200000000000000000) * Decimal(-10), Decimal(-2000000000000000000));
 	}
 
 	void test_division()
 	{
-		auto decimal = Decimal();
+		
 	}
 
 	void test_decimal()

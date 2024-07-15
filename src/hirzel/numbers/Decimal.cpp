@@ -13,10 +13,10 @@ namespace hirzel::numbers
 
 	static constexpr u128 signBitMask = u128(1) << 127;
 	static constexpr u128 valueBitMask = ~(u128(1) << 127);
-	const u128 Decimal::maxValue = ~(u128(1) << 127);
-	const u64 Decimal::decimalPlaces = 19;
-	const u64 Decimal::one = 10'000'000'000'000'000'000u;
-	const u64 Decimal::maxIntegral = u64(maxValue / one);
+	static constexpr u128 maxValue = ~(u128(1) << 127);
+	static constexpr u64 decimalPlaces = 19;
+	static constexpr u64 one = 10'000'000'000'000'000'000u;
+	static constexpr u64 maxIntegral = u64(maxValue / one);
 	// u128 Decimal::multiply(const u128 l, const u128 r, u128 divisor)
 	// {
 	// 	constexpr u64 lowerMask = 0x00000000FFFFFFFF;
@@ -138,12 +138,27 @@ namespace hirzel::numbers
 		return out;
 	}
 
-	static u128 multiply(const u128 l, const u128 r, u128 divisor)
+	static u128 multiply(const u128& l, const u128& r)
 	{
-		u128 result = l;
+		// TODO: Optimize mantissa by taking the bit range it could be in first (bottom 64 bits)
+		// Maybe this applies to integral as well
+		
+		const auto sign = (l & signBitMask) ^ (r & signBitMask);
+		
+		const auto lValue = l & valueBitMask;
+		const auto lIntegral = lValue / one;
+		const auto lMantissa = lValue % one;
 
-		result *= r;
-		result /= divisor;
+		const auto rValue = r & valueBitMask;
+		const auto rIntegral = rValue / one;
+		const auto rMantissa = rValue % one;
+
+		const auto a = lIntegral * rIntegral * one;
+		const auto b = lIntegral * rMantissa;
+		const auto c = lMantissa * rIntegral;
+		const auto d = lMantissa * rMantissa / one;
+
+		const auto result = (a + b + c + d) | sign;
 
 		return result;
 	}
@@ -221,27 +236,24 @@ namespace hirzel::numbers
 		Decimal(integral, 0u)
 	{}
 
-	Decimal::Decimal(i64 integral, const u64 mantissa):
+	Decimal::Decimal(const i64 integral, const u64 mantissa):
 		_value(0)
 	{
+		// TODO: Optimize this with to avoid branching
 		if (mantissa >= one)
 			throw std::invalid_argument("Decimal: Mantissa is too large to fit in deximal.");
 
 		bool isNegative = integral < 0;
-		
-		if (isNegative)
-			integral = -integral;
 
-		if ((u64)integral > maxIntegral)
+		if ((u64)std::abs(integral) > maxIntegral)
 			throw std::invalid_argument("Decimal: Integral is too large to fit in decimal.");
 
-		u128 s = isNegative & 0x1;
+		u128 s = isNegative
+			? signBitMask
+			: 0;
 		u128 i = isNegative
 			? -integral
 			: integral;
-
-		s <<= 127;
-		i *= one;
 
 		u64 m = mantissa;
 
@@ -259,6 +271,7 @@ namespace hirzel::numbers
 		}
 
 		_value = i;
+		_value *= one;
 		_value += m;
 		_value |= s;
 	}
@@ -364,9 +377,9 @@ namespace hirzel::numbers
 
 	double Decimal::toFloat() const
 	{
-		const auto integral = _value / Decimal::one;
-		const auto mantissa = _value - integral * Decimal::one;
-		const auto value = double(integral) + double(mantissa) / double(Decimal::one);
+		const auto integral = _value / one;
+		const auto mantissa = _value % one;
+		const auto value = double(integral) + double(mantissa) / double(one);
 
 		return value;
 	}
@@ -418,7 +431,7 @@ namespace hirzel::numbers
 		auto l = toInt();
 		auto r = other.toInt();
 		auto value = fromInt(l + r);
-		
+
 		return value;
 	}
 
@@ -435,7 +448,7 @@ namespace hirzel::numbers
 	{
 		auto result = Decimal();
 
-		result._value = multiply(_value, other._value, Decimal::one);
+		result._value = multiply(_value, other._value);
 
 		return result;
 	}
@@ -444,7 +457,7 @@ namespace hirzel::numbers
 	{
 		auto result = Decimal();
 
-		result._value = multiply(_value, Decimal::one, other._value);
+		// result._value = multiply(_value, Decimal::one, other._value);
 
 		return result;
 	}
@@ -466,14 +479,14 @@ namespace hirzel::numbers
 
 	Decimal& Decimal::operator*=(const Decimal& other)
 	{
-		_value = multiply(_value, other._value, Decimal::one);
+		_value = multiply(_value, other._value);
 
 		return *this;
 	}
 
 	Decimal& Decimal::operator/=(const Decimal& other)
 	{
-		_value = multiply(_value, Decimal::one, other._value);
+		// _value = multiply(_value, Decimal::one, other._value);
 
 		return *this;
 	}
@@ -567,9 +580,8 @@ namespace hirzel::numbers
 	std::ostream& operator<<(std::ostream& out, const Decimal& decimal)
 	{
 		const auto value = decimal._value & valueBitMask;
-		const auto integral = u64(value / Decimal::one);
-		const auto integralValue = Decimal::one * integral;
-		const auto mantissa = u64(value - integralValue);
+		const auto integral = u64(value / one);
+		const auto mantissa = u64(value % one);
 
 		if (decimal.isNegative())
 		{

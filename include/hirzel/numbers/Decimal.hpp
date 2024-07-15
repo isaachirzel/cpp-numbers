@@ -9,11 +9,6 @@ namespace hirzel::numbers
 {
 	class Decimal
 	{
-		static const u128 maxValue;
-		static const uint64_t decimalPlaces;
-		static const uint64_t one;
-		static const uint64_t maxIntegral;
-
 		/*
 			Layout:
 				bit 1-127:	unsigned integer indicating number
