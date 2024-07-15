@@ -16,7 +16,7 @@ namespace test
 	static bool isSectionPassed = true;
 	static bool isRunningSection = false;
 
-	void confirm(bool condition, const char *message)
+	void _confirm(bool condition, const char *message)
 	{
 		if (!condition)
 			throw std::runtime_error(message);
@@ -37,7 +37,7 @@ namespace test
 			? "\033[1;32mpassed\033[0m"
 			: "\033[1;31mfailed\033[0m";
 
-		std::cout << "Testing for `" YELLOW << subject << RESET "` " << verb << ".\n";
+		std::cout << "Testing for `" YELLOW << subject << RESET "` " << verb << ".\n\n";
 	}
 
 	static void pass()
@@ -55,7 +55,7 @@ namespace test
 
 	void run(const char* name, std::function<void()>&& function)
 	{
-		std::cout << std::left << std::setfill(' ') << std::setw(40) << name;
+		std::cout << "    " << std::left << std::setfill(' ') << std::setw(40) << name;
 		std::cout << "...";
 		std::cout.flush();
 
@@ -67,9 +67,14 @@ namespace test
 		catch (const std::exception& e)
 		{
 			fail();
-			std::cout << "\n    " RED "Exception" RESET ": " << e.what();
+			std::cout << "\n        " RED "Reason" RESET ": " << e.what();
 		}
 
-		std::cout << std::endl;
+		std::cout << "\n";
+	}
+
+	bool isTestingSuccessful()
+	{
+		return isAllTestingPassed;
 	}
 }

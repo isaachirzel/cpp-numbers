@@ -2,7 +2,6 @@
 #define HIRZEL_NUMBERS_U128_HPP
 
 #include <cstdint>
-#include <functional>
 #include <ostream>
 
 namespace hirzel::numbers
@@ -12,9 +11,6 @@ namespace hirzel::numbers
 		uint64_t _low;
 		uint64_t _high;
 
-		static std::function<void(const U128&, const U128&, char)> _onOverflow;
-		static thread_local bool _hasOverflown;
-
 	public:
 
 		static const U128 zero;
@@ -23,22 +19,17 @@ namespace hirzel::numbers
 
 	private:
 
-		static uint32_t divide(U128& i, uint32_t divisor);
-		static uint32_t multiply(U128& i, uint32_t mulitplier);
 
 	public:
 
 		U128();
 		U128(uint64_t high, uint64_t low);
+		U128(uint64_t value);
+		U128(uint32_t value);
 		U128(U128&&) = default;
 		U128(const U128&) = default;
 		U128& operator=(U128&&) = default;
 		U128& operator=(const U128&) = default;
-
-		static void setOverflowCallback(std::function<void(const U128&, const U128&, char)>&& callback);
-		static bool hasOverflown();
-		static void clearOverflow();
-		static U128 fromMul(uint64_t l, uint64_t r);
 
 		U128 operator+(const U128& addend) const;
 		U128 operator+(uint64_t addend) const;
@@ -52,6 +43,9 @@ namespace hirzel::numbers
 		U128 operator/(const U128& divisor) const;
 		U128 operator/(uint64_t divisor) const;
 		U128 operator/(uint32_t divisor) const;
+		U128 operator%(const U128& divisor) const;
+		U128 operator%(uint64_t divisor) const;
+		U128 operator%(uint32_t divisor) const;
 
 		U128& operator+=(const U128& addend);
 		U128& operator+=(uint64_t addend);
@@ -65,21 +59,36 @@ namespace hirzel::numbers
 		U128& operator/=(const U128& divisor);
 		U128& operator/=(uint64_t divisor);
 		U128& operator/=(uint32_t divisor);
+		U128& operator%=(const U128& divisor);
+		U128& operator%=(uint64_t divisor);
+		U128& operator%=(uint32_t divisor);
 
 		U128& operator++();
 		U128& operator--();
 
-		// U128 operator+(const U128& other);
-		// U128 operator-(const U128& other);
-		// U128 operator*(const U128& other);
-		// U128 operator/(const U128& other);
+		bool operator==(const U128& other) const;
+		bool operator==(uint64_t other) const;
+		bool operator==(uint32_t other) const;
+		bool operator!=(const U128& other) const;
+		bool operator!=(uint64_t other) const;
+		bool operator!=(uint32_t other) const;
 
+		bool operator<(const U128& other) const;
+		bool operator>(const U128& other) const;
+		bool operator<=(const U128& other) const;
+		bool operator>=(const U128& other) const;
 
+		operator bool() const;
+
+		auto& low() { return _low; }
+		auto& high() { return _high; }
 		const auto& low() const { return _low; }
 		const auto& high() const { return _high; }
 
 		friend std::ostream& operator<<(std::ostream& out, const U128& i);
 	};
+
+	using u128 = unsigned __int128;
 }
 
 #endif
