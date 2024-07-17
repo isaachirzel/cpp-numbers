@@ -41,11 +41,20 @@ namespace test
 
 	void test_division()
 	{
-		
+		expect(Decimal(0) / Decimal(1), Decimal(0));
+		expect(Decimal(1) / Decimal(1), Decimal(1));
+		expect(Decimal(2) / Decimal(1), Decimal(2));
+		expect(Decimal(2) / Decimal(2), Decimal(1));
+		expect(Decimal(2) / Decimal(-2), Decimal(-1));
+		expect(Decimal(2, 5) / Decimal(2), Decimal(1, 25));
+		expect(Decimal(3, 75) / Decimal(3), Decimal(1, 25));
+		expect(Decimal(3, 75) / Decimal(1, 25), Decimal(3));
 	}
 
 	void test_decimal()
 	{
+		// TODO: Test literals
+		// TODO: Test constructors
 		run("Addition", test_addition);
 		run("Subtraction", test_subtraction);
 		run("Multiplication", test_multiplication);

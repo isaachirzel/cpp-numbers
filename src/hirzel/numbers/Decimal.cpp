@@ -153,12 +153,33 @@ namespace hirzel::numbers
 		const auto rIntegral = rValue / one;
 		const auto rMantissa = rValue % one;
 
-		const auto a = lIntegral * rIntegral * one;
+		const auto a = lValue * rIntegral;
 		const auto b = lIntegral * rMantissa;
-		const auto c = lMantissa * rIntegral;
-		const auto d = lMantissa * rMantissa / one;
+		const auto c = lMantissa * rMantissa / one;
 
-		const auto result = (a + b + c + d) | sign;
+		const auto result = (a + b + c) | sign;
+
+		return result;
+	}
+
+	static u128 divide(const u128& l, const u128& r)
+	{
+		const auto sign = (l & signBitMask) ^ (r & signBitMask);
+		
+		const auto lValue = l & valueBitMask;
+		const auto rValue = r & valueBitMask;
+
+		const auto lIntegral = lValue / rValue;
+		const auto lMantissa = lValue % rValue;
+
+		const auto oneIntegral = one / rValue;
+		const auto oneMantissa = one % rValue;
+
+		const auto a = lValue * oneIntegral;
+		const auto b = lIntegral * oneMantissa;
+		const auto c = lMantissa * oneMantissa / rValue;
+
+		const auto result = (a + b + c) | sign;
 
 		return result;
 	}
@@ -200,34 +221,30 @@ namespace hirzel::numbers
 		_value += mantissa;
 	}
 
-	Decimal::Decimal(int integral, unsigned mantissa):
+	Decimal::Decimal(const int integral, const unsigned mantissa):
 		_value(0)
 	{
 		bool isNegative = integral < 0;
-		u128 s = isNegative & 0x1;
+		u128 s = u128(isNegative) << 127;
 		u128 i = isNegative
 			? -integral
 			: integral;
+		auto m = u128(mantissa);
 
-		s <<= 127;
-		i *= one;
-
-		u64 m = mantissa;
-
-		if (mantissa)
+		if (m)
 		{
 			while (true)
 			{
-				u64 step = mantissa * 10;
+				auto step = m * 10;
 
 				if (step >= one)
 					break;
 
-				mantissa = step;
+				m = step;
 			}
 		}
 
-		_value = i;
+		_value = i * one;
 		_value += m;
 		_value |= s;
 	}
@@ -457,7 +474,7 @@ namespace hirzel::numbers
 	{
 		auto result = Decimal();
 
-		// result._value = multiply(_value, Decimal::one, other._value);
+		result._value = divide(_value, other._value);
 
 		return result;
 	}
