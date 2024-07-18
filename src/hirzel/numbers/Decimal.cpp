@@ -16,6 +16,7 @@ namespace hirzel::numbers
 	static constexpr u128 maxValue = ~(u128(1) << 127);
 	static constexpr u64 one = 10'000'000'000'000'000'000u;
 	static constexpr u64 maxIntegral = u64(maxValue / one);
+	static constexpr size_t decimalPlaces = 19;
 
 	std::ostream& operator<<(std::ostream& out, const unsigned __int128 value)
 	{
@@ -179,6 +180,7 @@ namespace hirzel::numbers
 
 		u32 partIndex = 0;
 		u64 parts[2] = { 0, 0 };
+		size_t lens[2] = { 0, 0 };
 
 		for (size_t i = start; i < length; ++i)
 		{
@@ -197,6 +199,7 @@ namespace hirzel::numbers
 			}
 
 			auto& part = parts[partIndex];
+			auto& len = lens[partIndex];
 			auto cValue = (unsigned char)(c - '0');
 
 			if (cValue > 9)
@@ -206,6 +209,7 @@ namespace hirzel::numbers
 
 			part *= 10;
 			part += cValue;
+			len += 1;
 		}
 
 		if (parts[0] > maxIntegral)
@@ -213,22 +217,22 @@ namespace hirzel::numbers
 			throw std::invalid_argument("Decimal: Integral `" + std::to_string(parts[0]) + "` is too large to fit in decimal.");
 		}
 
+		if (lens[1] > decimalPlaces)
+		{
+			throw std::invalid_argument("Decimal: Mantissa `" + std::to_string(parts[1]) + "` is too large to fit in decimal.");
+		}
+
 		const auto integral = u128(parts[0]) * one;
 		auto mantissa = parts[1];
+
+		for (size_t i = 0; i < decimalPlaces - lens[1]; ++i)
+		{
+			mantissa *= 10;
+		}
 
 		if (mantissa >= one)
 		{
 			throw std::invalid_argument("Decimal: Mantissa `." + std::to_string(mantissa) + "` is too large to fit in decimal.");
-		}
-
-		while (true)
-		{
-			u64 step = mantissa * 10;
-
-			if (step >= one)
-				break;
-
-			mantissa = step;
 		}
 
 		auto result = Decimal();

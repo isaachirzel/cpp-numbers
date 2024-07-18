@@ -37,6 +37,7 @@ namespace test
 		expect(-3_dec * 5_dec, -15_dec);
 		expect(-3_dec * -5_dec, 15_dec);
 		expect(200000000000000000_dec * -10_dec, -2000000000000000000_dec);
+		expect(1_dec * 0.01_dec, "0.01"_dec);
 	}
 
 	void test_division()
