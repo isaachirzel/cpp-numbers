@@ -27,8 +27,8 @@ namespace hirzel::numbers
 	public:
 
 		Decimal();
-		Decimal(const int integral);
-		Decimal(double value);
+		explicit Decimal(const int integral);
+		explicit Decimal(double value);
 		Decimal(Decimal&&) = default;
 		Decimal(const Decimal&) = default;
 		Decimal& operator=(Decimal&&) = default;
