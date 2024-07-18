@@ -19,20 +19,14 @@ namespace hirzel::numbers
 
 	private:
 
-		Decimal(unsigned long long value);
-		Decimal(long double value);
-
+		Decimal(const char* text, size_t length);
 		i128 toInt() const;
 		static Decimal fromInt(const i128& value);
 
 	public:
 
 		Decimal();
-		Decimal(int integral, unsigned mantissa);
-		Decimal(int integral);
-		Decimal(int64_t integral, uint64_t mantissa);
-		Decimal(int64_t integral);
-		Decimal(const char* text, size_t length);
+		Decimal(const int integral);
 		Decimal(const char* text);
 		Decimal(const std::string_view& text);
 		Decimal(const std::string& text);

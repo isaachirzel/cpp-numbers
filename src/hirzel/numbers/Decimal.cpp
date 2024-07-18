@@ -188,114 +188,18 @@ namespace hirzel::numbers
 		_value(0)
 	{}
 
-	Decimal::Decimal(unsigned long long value):
+
+	Decimal::Decimal(const int integral):
 		_value(0)
 	{
-		// NOTE: This is specifically for the literals as it's not expecting negative numbers
-
-		if (value > maxIntegral)
-		{
-			throw std::invalid_argument("Decimal: Integer literal `" + std::to_string(value) + "` is too large to fit in decimal.");
-		}
-
-		_value = value;
-		value *= one;
-	}
-
-	Decimal::Decimal(long double value):
-		_value(0)
-	{
-		// NOTE: This is specifically for the literals as it's not expecting negative numbers
-
-		auto integral = u128(value);
-
-		if (integral > maxIntegral)
-		{
-			throw std::invalid_argument("Decimal: Double literal `" + std::to_string(value) + "` is too large to create decimal.");
-		}
-
-		auto floatMantissa = value - (long double)integral;
-		auto mantissa = u64(floatMantissa * (long double)one);
-
-		_value = integral * one;
-		_value += mantissa;
-	}
-
-	Decimal::Decimal(const int integral, const unsigned mantissa):
-		_value(0)
-	{
-		bool isNegative = integral < 0;
-		u128 s = u128(isNegative) << 127;
-		u128 i = isNegative
+		auto abs = integral < 0
 			? -integral
 			: integral;
-		auto m = u128(mantissa);
+		auto s = u128(integral < 0) << 127;
+		auto v = u128(abs) * one;
 
-		if (m)
-		{
-			while (true)
-			{
-				auto step = m * 10;
-
-				if (step >= one)
-					break;
-
-				m = step;
-			}
-		}
-
-		_value = i * one;
-		_value += m;
-		_value |= s;
+		_value = s | v;
 	}
-
-	Decimal::Decimal(int integral):
-		Decimal(integral, 0u)
-	{}
-
-	Decimal::Decimal(const i64 integral, const u64 mantissa):
-		_value(0)
-	{
-		// TODO: Optimize this with to avoid branching
-		if (mantissa >= one)
-			throw std::invalid_argument("Decimal: Mantissa is too large to fit in deximal.");
-
-		bool isNegative = integral < 0;
-
-		if ((u64)std::abs(integral) > maxIntegral)
-			throw std::invalid_argument("Decimal: Integral is too large to fit in decimal.");
-
-		u128 s = isNegative
-			? signBitMask
-			: 0;
-		u128 i = isNegative
-			? -integral
-			: integral;
-
-		u64 m = mantissa;
-
-		if (m)
-		{
-			while (true)
-			{
-				u64 step = m * 10;
-
-				if (step >= one)
-					break;
-
-				m = step;
-			}
-		}
-
-		_value = i;
-		_value *= one;
-		_value += m;
-		_value |= s;
-	}
-
-	Decimal::Decimal(i64 integral):
-		Decimal(integral, u64(0))
-	{}
 
 	Decimal::Decimal(const char* text, size_t length):
 		Decimal()
@@ -510,9 +414,15 @@ namespace hirzel::numbers
 
 	Decimal Decimal::operator-() const
 	{
+		auto s = (_value & signBitMask) ^ signBitMask;
+		auto v = _value & valueBitMask;
 		auto result = Decimal();
 
-		result._value = -_value;
+		result._value = s | v;
+
+		// std::cout << "s: " << s << std::endl;
+		// std::cout << "v: " << v << std::endl;
+
 
 		return result;
 	}
@@ -623,11 +533,33 @@ namespace hirzel::numbers
 
 	Decimal operator""_dec(unsigned long long value)
 	{
-		return Decimal(value);
+		if (value > maxIntegral)
+		{
+			throw std::invalid_argument("Decimal: Integer literal `" + std::to_string(value) + "` is too large to fit in decimal.");
+		}
+
+		auto result = Decimal();
+
+		result._value = u128(value) * one;
+
+		return result;
 	}
 
 	Decimal operator ""_dec(long double value)
 	{
-		return Decimal(value);
+		auto integral = u128(value);
+
+		if (integral > maxIntegral)
+		{
+			throw std::invalid_argument("Decimal: Double literal `" + std::to_string(value) + "` is too large to create decimal.");
+		}
+
+		auto floatMantissa = value - (long double)integral;
+		auto mantissa = u64(floatMantissa * (long double)one);
+		auto result = Decimal();
+
+		result._value = integral * one + mantissa;
+
+		return result;
 	}
 }
