@@ -14,77 +14,8 @@ namespace hirzel::numbers
 	static constexpr u128 signBitMask = u128(1) << 127;
 	static constexpr u128 valueBitMask = ~(u128(1) << 127);
 	static constexpr u128 maxValue = ~(u128(1) << 127);
-	static constexpr u64 decimalPlaces = 19;
 	static constexpr u64 one = 10'000'000'000'000'000'000u;
 	static constexpr u64 maxIntegral = u64(maxValue / one);
-	// u128 Decimal::multiply(const u128 l, const u128 r, u128 divisor)
-	// {
-	// 	constexpr u64 lowerMask = 0x00000000FFFFFFFF;
-	// 	constexpr u64 upperMask = 0xEFFFFFFF00000000;
-
-	// 	const u128 lHigh = l >> 32;
-	// 	const u128 rHigh = r >> 32;
-	// 	const u128 lLow = l & lowerMask;
-	// 	const u128 rLow = r & lowerMask;
-	// 	const auto low = lLow * rLow;
-
-	// 	if (!(lHigh | rHigh))
-	// 	{
-	// 		return low;
-	// 	}
-
-	// 	const auto mid1 = lLow * rHigh;
-	// 	const auto mid2 = lHigh * rLow;
-	// 	const auto result = low + ((mid1 + mid2) << 32);
-	// 	const auto overflowed = (lHigh && rHigh) ||
-	// 		(result < low) ||
-	// 		(mid1 >> 32) != 0 ||
-	// 		(mid2 >> 32) != 0;
-
-	// 	if (overflowed)
-	// 	{
-	// 		Log::warning("Decimal: Multiplication of $ and $ causes overflow.", of(l), of(r));
-	// 	}
-
-	// 	Log::debug("Result: $", result);
-
-	// 	return result;
-	// }
-
-/*
-	multiplY
-
-	auto lIntegral = l / divisor;
-		auto lMantissa = l % divisor;
-
-		if (lMantissa == 0)
-		{
-			return lIntegral * r;
-		}
-
-		auto rMantissa = r % divisor;
-		auto rIntegral = r / divisor;
-
-		if (rMantissa == 0)
-		{
-			return l * rIntegral;
-		}
-
-		const auto integral = lIntegral * rIntegral; // TODO: Check with mantissa overflow
-
-		// if (integral > maxIntegral)
-		// {
-		// 	Log::warning("Decimal: Multiplication of $ and $ causes overflow.", of(l), of(r));
-		// }
-
-		auto result = integral * one;
-
-		result += lIntegral * rMantissa;
-		result += lMantissa * rIntegral;
-		// result += lMantissa * rMantissa / one;
-
-		return result;
-*/
 
 	std::ostream& operator<<(std::ostream& out, const unsigned __int128 value)
 	{
@@ -201,18 +132,55 @@ namespace hirzel::numbers
 		_value = s | v;
 	}
 
-	Decimal::Decimal(const char* text, size_t length):
-		Decimal()
+	Decimal::Decimal(double value)
+	{
+		auto integral = u128(value);
+
+		if (integral > maxIntegral)
+		{
+			throw std::invalid_argument("Decimal: double `" + std::to_string(value) + "` is too large to create decimal.");
+		}
+
+		auto floatMantissa = value - double(integral);
+		auto mantissa = u64(floatMantissa * double(one));
+
+		_value = integral * one;
+		_value += mantissa;
+	}
+
+	Decimal Decimal::from(const i128& value)
+	{
+		auto signBit = i32(value >> 127) & 0x1;
+		auto coefficient = i32(1) - signBit - signBit;
+		u128 abs = value * coefficient;
+		auto sign = value & signBitMask;
+		auto result = Decimal();
+
+		result._value = abs | sign;
+		
+		return result;
+	}
+
+	Decimal Decimal::from(const char* text, size_t length)
 	{
 		if (length == 0)
 		{
 			throw std::invalid_argument("Decimal: String is empty.");
 		}
 
+		size_t start = 0;
+		auto s = u128(0);
+
+		if (text[0] == '-')
+		{
+			s = signBitMask;
+			start += 1;
+		}
+
 		u32 partIndex = 0;
 		u64 parts[2] = { 0, 0 };
 
-		for (size_t i = 0; i < length; ++i)
+		for (size_t i = start; i < length; ++i)
 		{
 			auto c = text[i];
 
@@ -240,13 +208,13 @@ namespace hirzel::numbers
 			part += cValue;
 		}
 
-		auto integral = parts[0];
-		auto mantissa = parts[1];
-
-		if (integral > maxIntegral)
+		if (parts[0] > maxIntegral)
 		{
-			throw std::invalid_argument("Decimal: Integral `" + std::to_string(integral) + "` is too large to fit in decimal.");
+			throw std::invalid_argument("Decimal: Integral `" + std::to_string(parts[0]) + "` is too large to fit in decimal.");
 		}
+
+		const auto integral = u128(parts[0]) * one;
+		auto mantissa = parts[1];
 
 		if (mantissa >= one)
 		{
@@ -263,37 +231,27 @@ namespace hirzel::numbers
 			mantissa = step;
 		}
 
-		_value = integral;
-		_value *= one;
-		_value += mantissa;
+		auto result = Decimal();
+
+		result._value = integral + mantissa;
+		result._value |= s;
+
+		return result;
 	}
 
-	Decimal::Decimal(const char* text):
-		Decimal(text, std::strlen(text))
-	{}
-
-	Decimal::Decimal(const std::string_view& text):
-		Decimal(text.data(), text.length())
-	{}
-
-	Decimal::Decimal(const std::string& text):
-		Decimal(text.data(), text.length())
-	{}
-
-	Decimal::Decimal(double value)
+	Decimal Decimal::from(const char *text)
 	{
-		auto integral = u128(value);
+		return from(text, std::strlen(text));
+	}
 
-		if (integral > maxIntegral)
-		{
-			throw std::invalid_argument("Decimal: double `" + std::to_string(value) + "` is too large to create decimal.");
-		}
+	Decimal Decimal::from(const std::string_view& text)
+	{
+		return from(text.data(), text.length());
+	}
 
-		auto floatMantissa = value - double(integral);
-		auto mantissa = u64(floatMantissa * double(one));
-
-		_value = integral * one;
-		_value += mantissa;
+	Decimal Decimal::from(const std::string& text)
+	{
+		return from(text.c_str(), text.length());
 	}
 
 	double Decimal::toFloat() const
@@ -312,19 +270,6 @@ namespace hirzel::numbers
 		i128 abs = _value & maxValue;
 		i128 result = abs * coefficient;
 
-		return result;
-	}
-
-	Decimal Decimal::fromInt(const i128& value)
-	{
-		auto signBit = i32(value >> 127) & 0x1;
-		auto coefficient = i32(1) - signBit - signBit;
-		u128 abs = value * coefficient;
-		auto sign = value & signBitMask;
-		auto result = Decimal();
-
-		result._value = abs | sign;
-		
 		return result;
 	}
 
@@ -351,7 +296,7 @@ namespace hirzel::numbers
 	{
 		auto l = toInt();
 		auto r = other.toInt();
-		auto value = fromInt(l + r);
+		auto value = from(l + r);
 
 		return value;
 	}
@@ -360,7 +305,7 @@ namespace hirzel::numbers
 	{
 		auto l = toInt();
 		auto r = other.toInt();
-		auto value = fromInt(l - r);
+		auto value = from(l - r);
 
 		return value;
 	}
@@ -407,7 +352,7 @@ namespace hirzel::numbers
 
 	Decimal& Decimal::operator/=(const Decimal& other)
 	{
-		// _value = multiply(_value, Decimal::one, other._value);
+		_value = divide(_value, other._value);
 
 		return *this;
 	}
@@ -419,10 +364,6 @@ namespace hirzel::numbers
 		auto result = Decimal();
 
 		result._value = s | v;
-
-		// std::cout << "s: " << s << std::endl;
-		// std::cout << "v: " << v << std::endl;
-
 
 		return result;
 	}
@@ -528,7 +469,7 @@ namespace hirzel::numbers
 
 	Decimal operator""_dec(const char *text, size_t length)
 	{
-		return Decimal(text, length);
+		return Decimal::from(text, length);
 	}
 
 	Decimal operator""_dec(unsigned long long value)

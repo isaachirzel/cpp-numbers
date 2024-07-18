@@ -21,20 +21,22 @@ namespace hirzel::numbers
 
 		Decimal(const char* text, size_t length);
 		i128 toInt() const;
-		static Decimal fromInt(const i128& value);
+		static Decimal from(const i128& value);
+		static Decimal from(const char* text, size_t length);
 
 	public:
 
 		Decimal();
 		Decimal(const int integral);
-		Decimal(const char* text);
-		Decimal(const std::string_view& text);
-		Decimal(const std::string& text);
 		Decimal(double value);
 		Decimal(Decimal&&) = default;
 		Decimal(const Decimal&) = default;
 		Decimal& operator=(Decimal&&) = default;
 		Decimal& operator=(const Decimal&) = default;
+
+		static Decimal from(const char *text);
+		static Decimal from(const std::string_view& text);
+		static Decimal from(const std::string& text);
 
 		double toFloat() const;
 		Decimal abs() const;
