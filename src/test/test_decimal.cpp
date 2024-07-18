@@ -52,6 +52,7 @@ namespace test
 		expect(3.75_dec / 3_dec, 1.25_dec);
 		expect(3.75_dec / 1.25_dec, 3_dec);
 		expect(3.75_dec / 0.01_dec, 375_dec);
+		expect(10_dec / 0.01_dec, 1000_dec);
 	}
 
 	void test_decimal()

@@ -230,11 +230,6 @@ namespace hirzel::numbers
 			mantissa *= 10;
 		}
 
-		if (mantissa >= one)
-		{
-			throw std::invalid_argument("Decimal: Mantissa `." + std::to_string(mantissa) + "` is too large to fit in decimal.");
-		}
-
 		auto result = Decimal();
 
 		result._value = integral + mantissa;
