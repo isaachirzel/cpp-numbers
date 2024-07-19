@@ -1,4 +1,4 @@
-#include "hirzel/numbers/U128.hpp"
+#include "hirzel/numbers/UInt128.hpp"
 #include <cassert>
 #include <stdexcept>
 
@@ -10,9 +10,9 @@ namespace hirzel::numbers
 	using u64 = uint64_t;
 	using u32 = uint32_t;
 
-	const U128 U128::max = U128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
-	const U128 U128::zero = U128(0, 0);
-	const U128 U128::one = U128(0, 1);
+	const UInt128 UInt128::max = UInt128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+	const UInt128 UInt128::zero = UInt128(0, 0);
+	const UInt128 UInt128::one = UInt128(0, 1);
 
 	static inline u32 multiply32Part(u32& part, u32 multiplier, u32 carry)
 	{
@@ -77,8 +77,8 @@ namespace hirzel::numbers
 		// // 	return;
 		// // }
 
-		// uint128 denominator = divisor;
-		// uint128 quotient = 0;
+		// UInt128 denominator = divisor;
+		// UInt128 quotient = 0;
 
 		// // Left aligns the MSB of the denominator and the dividend.
 		// const int shift = Fls128(dividend) - Fls128(denominator);
@@ -190,26 +190,26 @@ namespace hirzel::numbers
 		low = (t << 32) + w3;
 	}
 
-	U128::U128(u64 high, u64 low):
+	UInt128::UInt128(u64 high, u64 low):
 		_low(low),
 		_high(high)
 	{}
 
-	U128::U128():
-		U128(0, 0)
+	UInt128::UInt128():
+		UInt128(0, 0)
 	{}
 
-	U128::U128(u64 value):
-		U128(0, value)
+	UInt128::UInt128(u64 value):
+		UInt128(0, value)
 	{}
 
-	U128::U128(u32 value):
-		U128(0, value)
+	UInt128::UInt128(u32 value):
+		UInt128(0, value)
 	{}
 
-	U128 U128::operator+(const U128& addend) const
+	UInt128 UInt128::operator+(const UInt128& addend) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		result._low += addend._low;
 		result._high += addend._high;
@@ -221,9 +221,9 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator+(u64 addend) const
+	UInt128 UInt128::operator+(u64 addend) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		result._low += addend;
 
@@ -234,14 +234,14 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator+(u32 addend) const
+	UInt128 UInt128::operator+(u32 addend) const
 	{
 		return *this + u64(addend);
 	}
 
-	U128 U128::operator-(const U128& subtrahend) const
+	UInt128 UInt128::operator-(const UInt128& subtrahend) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		result._low -= subtrahend._low;
 		result._high -= subtrahend._high;
@@ -253,9 +253,9 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator-(u64 subtrahend) const
+	UInt128 UInt128::operator-(u64 subtrahend) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		result._low -= subtrahend;
 
@@ -266,14 +266,14 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator-(u32 subtrahend) const
+	UInt128 UInt128::operator-(u32 subtrahend) const
 	{
 		return *this - u64(subtrahend);
 	}
 
-	U128 U128::operator*(const U128& multiplier) const
+	UInt128 UInt128::operator*(const UInt128& multiplier) const
 	{
-		auto result = U128();
+		auto result = UInt128();
 
 		multiply64by64(result._high, result._low, _low, multiplier._low);
 
@@ -283,9 +283,9 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator*(u64 multiplier) const
+	UInt128 UInt128::operator*(u64 multiplier) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		multiply64by64(result._high, result._low, _low, multiplier);
 
@@ -294,68 +294,68 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	U128 U128::operator*(u32 multiplier) const
+	UInt128 UInt128::operator*(u32 multiplier) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		multiply128by32(result._high, result._low, multiplier);
 
 		return result;
 	}
 
-	U128 U128::operator/(const U128& divisor) const
+	UInt128 UInt128::operator/(const UInt128& divisor) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		notImplemented();
 		
 		return result;
 	}
 
-	U128 U128::operator/(u64 divisor) const
+	UInt128 UInt128::operator/(u64 divisor) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 
 		divide128by64(result._high, result._low, divisor);
 		
 		return result;
 	}
 
-	U128 U128::operator/(u32 divisor) const
+	UInt128 UInt128::operator/(u32 divisor) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 		
 		divide128by32(result._high, result._low, divisor);
 
 		return result;
 	}
 
-	U128 U128::operator%(const U128& divisor) const
+	UInt128 UInt128::operator%(const UInt128& divisor) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 		
 		notImplemented();
 		
 		return result;
 	}
 
-	U128 U128::operator%(u64 divisor) const
+	UInt128 UInt128::operator%(u64 divisor) const
 	{
-		auto result = U128(*this);
+		auto result = UInt128(*this);
 		auto remainder = divide128by64(result._high, result._low, divisor);
 		
 		return remainder;
 	}
 
-	U128 U128::operator%(u32 divisor) const
+	UInt128 UInt128::operator%(u32 divisor) const
 	{
-		auto dividend = U128(*this);
+		auto dividend = UInt128(*this);
 		auto remainder = divide128by32(dividend._high, dividend._low, divisor);
 
-		return U128(0, remainder);
+		return UInt128(0, remainder);
 	}
 
-	U128& U128::operator+=(const U128& addend)
+	UInt128& UInt128::operator+=(const UInt128& addend)
 	{
 		auto result = *this + addend;
 
@@ -364,7 +364,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator+=(u64 addend)
+	UInt128& UInt128::operator+=(u64 addend)
 	{
 		auto result = *this + addend;
 		
@@ -373,7 +373,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator+=(u32 addend)
+	UInt128& UInt128::operator+=(u32 addend)
 	{
 		auto result = *this + addend;
 		
@@ -382,7 +382,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator-=(const U128& subtrahend)
+	UInt128& UInt128::operator-=(const UInt128& subtrahend)
 	{
 		auto result = *this - subtrahend;
 		
@@ -391,7 +391,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator-=(u64 subtrahend)
+	UInt128& UInt128::operator-=(u64 subtrahend)
 	{
 		auto result = *this - subtrahend;
 		
@@ -400,7 +400,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator-=(u32 subtrahend)
+	UInt128& UInt128::operator-=(u32 subtrahend)
 	{
 		auto result = *this - subtrahend;
 		
@@ -409,7 +409,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator*=(const U128& multiplier)
+	UInt128& UInt128::operator*=(const UInt128& multiplier)
 	{
 		auto result = *this * multiplier;
 
@@ -418,7 +418,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator*=(u64 multiplier)
+	UInt128& UInt128::operator*=(u64 multiplier)
 	{
 		auto result = *this * multiplier;
 
@@ -427,7 +427,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator*=(u32 multiplier)
+	UInt128& UInt128::operator*=(u32 multiplier)
 	{
 		auto result = *this * multiplier;
 
@@ -436,7 +436,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator/=(const U128& divisor)
+	UInt128& UInt128::operator/=(const UInt128& divisor)
 	{
 		auto result = *this / divisor;
 
@@ -445,7 +445,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator/=(u64 divisor)
+	UInt128& UInt128::operator/=(u64 divisor)
 	{
 		auto result = *this / divisor;
 
@@ -454,7 +454,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator/=(u32 divisor)
+	UInt128& UInt128::operator/=(u32 divisor)
 	{
 		auto result = *this / divisor;
 
@@ -463,7 +463,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator%=(const U128& divisor)
+	UInt128& UInt128::operator%=(const UInt128& divisor)
 	{
 		auto result = *this % divisor;
 
@@ -472,7 +472,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator%=(u64 divisor)
+	UInt128& UInt128::operator%=(u64 divisor)
 	{
 		auto result = *this % divisor;
 
@@ -481,7 +481,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator%=(u32 divisor)
+	UInt128& UInt128::operator%=(u32 divisor)
 	{
 		auto result = *this % divisor;
 
@@ -490,7 +490,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator++()
+	UInt128& UInt128::operator++()
 	{
 		auto T = _low + 1;
 		auto carry = ((T ^ _low) & T) >> 63;
@@ -501,7 +501,7 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	U128& U128::operator--()
+	UInt128& UInt128::operator--()
 	{
 		auto T = _low - 1;
 		auto carry = ((T ^ _low) & T) >> 63;
@@ -512,37 +512,37 @@ namespace hirzel::numbers
 		return *this;
 	}
 
-	bool U128::operator==(const U128& other) const
+	bool UInt128::operator==(const UInt128& other) const
 	{
 		return ((_low ^ other._low) | (_high ^ other._high)) == 0;
 	}
 
-	bool U128::operator==(u64 other) const
+	bool UInt128::operator==(u64 other) const
 	{
 		return (_high | (_low ^ other)) == 0;
 	}
 
-	bool U128::operator==(u32 other) const
+	bool UInt128::operator==(u32 other) const
 	{
 		return *this == u64(other);
 	}
 
-	bool U128::operator!=(const U128& other) const
+	bool UInt128::operator!=(const UInt128& other) const
 	{
 		return !(*this == other);
 	}
 
-	bool U128::operator!=(u64 other) const
+	bool UInt128::operator!=(u64 other) const
 	{
 		return !(*this == other);
 	}
 
-	bool U128::operator!=(u32 other) const
+	bool UInt128::operator!=(u32 other) const
 	{
 		return !(*this == u64(other));
 	}
 
-	bool U128::operator<(const U128& other) const
+	bool UInt128::operator<(const UInt128& other) const
 	{
 		// TODO: Optimize this
 		return _high == other._high
@@ -550,27 +550,27 @@ namespace hirzel::numbers
 			: _high <= other._high;
 	}
 
-	bool U128::operator>(const U128& other) const
+	bool UInt128::operator>(const UInt128& other) const
 	{
 		return other < *this;
 	}
 
-	bool U128::operator<=(const U128& other) const
+	bool UInt128::operator<=(const UInt128& other) const
 	{
 		return !(other < *this);
 	}
 
-	bool U128::operator>=(const U128& other) const
+	bool UInt128::operator>=(const UInt128& other) const
 	{
 		return !(*this < other);
 	}
 
-	U128::operator bool() const
+	UInt128::operator bool() const
 	{
 		return (_high | _low) != 0;
 	}
 
-	std::ostream& operator<<(std::ostream& out, const U128& i)
+	std::ostream& operator<<(std::ostream& out, const UInt128& i)
 	{
 		char buffer[42];
 

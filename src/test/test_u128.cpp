@@ -1,4 +1,4 @@
-#include "hirzel/numbers/U128.hpp"
+#include "hirzel/numbers/UInt128.hpp"
 #include "test/utils.hpp"
 #include <iostream>
 
@@ -10,28 +10,28 @@ namespace test
 
 	static void test_add()
 	{
-		expect(U128::zero + U128::zero, U128::zero);
-		expect(U128::zero + U128::one, U128::one);
-		expect(U128::max + U128::one, U128::zero);
-		expect(U128(1, 0) + U128(1, 0), U128(2, 0));
-		expect(U128(0, 0xFFFFFFFFFFFFFFFF) + U128::one, U128(1, 0));
+		expect(UInt128::zero + UInt128::zero, UInt128::zero);
+		expect(UInt128::zero + UInt128::one, UInt128::one);
+		expect(UInt128::max + UInt128::one, UInt128::zero);
+		expect(UInt128(1, 0) + UInt128(1, 0), UInt128(2, 0));
+		expect(UInt128(0, 0xFFFFFFFFFFFFFFFF) + UInt128::one, UInt128(1, 0));
 	}
 
 	static void test_subtract()
 	{
-		expect(U128::zero - U128::zero, U128::zero);
-		expect(U128::one - U128::zero, U128::one);
-		expect(U128::zero - U128::one, U128::max);
-		expect(U128(1, 0) - U128(1, 0), U128::zero);
-		expect(U128(1, 0) - U128::one, U128(0, 0xFFFFFFFFFFFFFFFF));
+		expect(UInt128::zero - UInt128::zero, UInt128::zero);
+		expect(UInt128::one - UInt128::zero, UInt128::one);
+		expect(UInt128::zero - UInt128::one, UInt128::max);
+		expect(UInt128(1, 0) - UInt128(1, 0), UInt128::zero);
+		expect(UInt128(1, 0) - UInt128::one, UInt128(0, 0xFFFFFFFFFFFFFFFF));
 	}
 
 	static void test_multiply()
 	{
-		expect(U128::zero * U128::zero, U128::zero);
-		expect(U128::zero * U128::one, U128::zero);
-		expect(U128::one * U128::zero, U128::zero);
-		expect(U128::one * U128::one, U128::one);
+		expect(UInt128::zero * UInt128::zero, UInt128::zero);
+		expect(UInt128::zero * UInt128::one, UInt128::zero);
+		expect(UInt128::one * UInt128::zero, UInt128::zero);
+		expect(UInt128::one * UInt128::one, UInt128::one);
 	}
 
 	static void test_divide()
@@ -85,7 +85,7 @@ namespace test
 	{
 	}
 
-	void test_u128()
+	void test_uint128()
 	{
 		// TODO: add % operator
 

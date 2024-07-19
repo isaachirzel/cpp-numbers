@@ -3,7 +3,7 @@
 
 namespace test
 {
-	void test_decimal();
+	void test_fixed128();
 }
 
 #endif

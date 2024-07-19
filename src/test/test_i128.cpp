@@ -1,8 +1,8 @@
-#include "test/test_i128.hpp"
+#include "test/test_int128.hpp"
 
 namespace test
 {
-	void test_i128()
+	void test_int128()
 	{
 	}
 }

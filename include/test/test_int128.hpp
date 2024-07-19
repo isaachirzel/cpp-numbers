@@ -3,7 +3,7 @@
 
 namespace test
 {
-	void test_i128();
+	void test_int128();
 }
 
 #endif

@@ -1,4 +1,4 @@
-#include "hirzel/numbers/Decimal.hpp"
+#include "hirzel/numbers/Fixed128.hpp"
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -116,12 +116,12 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	Decimal::Decimal():
+	Fixed128::Fixed128():
 		_value(0)
 	{}
 
 
-	Decimal::Decimal(const int integral):
+	Fixed128::Fixed128(const int integral):
 		_value(0)
 	{
 		auto abs = integral < 0
@@ -133,13 +133,13 @@ namespace hirzel::numbers
 		_value = s | v;
 	}
 
-	Decimal::Decimal(double value)
+	Fixed128::Fixed128(double value)
 	{
 		auto integral = u128(value);
 
 		if (integral > maxIntegral)
 		{
-			throw std::invalid_argument("Decimal: double `" + std::to_string(value) + "` is too large to create decimal.");
+			throw std::invalid_argument("Fixed128: double `" + std::to_string(value) + "` is too large to create decimal.");
 		}
 
 		auto floatMantissa = value - double(integral);
@@ -149,24 +149,24 @@ namespace hirzel::numbers
 		_value += mantissa;
 	}
 
-	Decimal Decimal::from(const i128& value)
+	Fixed128 Fixed128::from(const i128& value)
 	{
 		auto signBit = i32(value >> 127) & 0x1;
 		auto coefficient = i32(1) - signBit - signBit;
 		u128 abs = value * coefficient;
 		auto sign = value & signBitMask;
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = abs | sign;
 		
 		return result;
 	}
 
-	Decimal Decimal::from(const char* text, size_t length)
+	Fixed128 Fixed128::from(const char* text, size_t length)
 	{
 		if (length == 0)
 		{
-			throw std::invalid_argument("Decimal: String is empty.");
+			throw std::invalid_argument("Fixed128: String is empty.");
 		}
 
 		size_t start = 0;
@@ -190,7 +190,7 @@ namespace hirzel::numbers
 			{
 				if (partIndex == 1)
 				{
-					throw std::invalid_argument("Decimal: Duplicate `.` found in string: `" + std::string(text) + "`.");
+					throw std::invalid_argument("Fixed128: Duplicate `.` found in string: `" + std::string(text) + "`.");
 				}
 
 				partIndex = 1;
@@ -204,7 +204,7 @@ namespace hirzel::numbers
 
 			if (cValue > 9)
 			{
-				throw std::invalid_argument("Decimal: Invalid character `" + std::string(1, cValue) + "` found in string: `" + std::string(text) + "`.");
+				throw std::invalid_argument("Fixed128: Invalid character `" + std::string(1, cValue) + "` found in string: `" + std::string(text) + "`.");
 			}
 
 			part *= 10;
@@ -214,12 +214,12 @@ namespace hirzel::numbers
 
 		if (parts[0] > maxIntegral)
 		{
-			throw std::invalid_argument("Decimal: Integral `" + std::to_string(parts[0]) + "` is too large to fit in decimal.");
+			throw std::invalid_argument("Fixed128: Integral `" + std::to_string(parts[0]) + "` is too large to fit in decimal.");
 		}
 
 		if (lens[1] > decimalPlaces)
 		{
-			throw std::invalid_argument("Decimal: Mantissa `" + std::to_string(parts[1]) + "` is too large to fit in decimal.");
+			throw std::invalid_argument("Fixed128: Mantissa `" + std::to_string(parts[1]) + "` is too large to fit in decimal.");
 		}
 
 		const auto integral = u128(parts[0]) * one;
@@ -230,7 +230,7 @@ namespace hirzel::numbers
 			mantissa *= 10;
 		}
 
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = integral + mantissa;
 		result._value |= s;
@@ -238,22 +238,22 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	Decimal Decimal::from(const char *text)
+	Fixed128 Fixed128::from(const char *text)
 	{
 		return from(text, std::strlen(text));
 	}
 
-	Decimal Decimal::from(const std::string_view& text)
+	Fixed128 Fixed128::from(const std::string_view& text)
 	{
 		return from(text.data(), text.length());
 	}
 
-	Decimal Decimal::from(const std::string& text)
+	Fixed128 Fixed128::from(const std::string& text)
 	{
 		return from(text.c_str(), text.length());
 	}
 
-	double Decimal::toFloat() const
+	double Fixed128::toFloat() const
 	{
 		const auto integral = _value / one;
 		const auto mantissa = _value % one;
@@ -262,7 +262,7 @@ namespace hirzel::numbers
 		return value;
 	}
 
-	i128 Decimal::toInt() const
+	i128 Fixed128::toInt() const
 	{
 		auto signBit = i32(_value >> 127);
 		auto coefficient = 1 - signBit - signBit;
@@ -272,26 +272,26 @@ namespace hirzel::numbers
 		return result;
 	}
 
-	Decimal Decimal::abs() const
+	Fixed128 Fixed128::abs() const
 	{
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = _value & maxValue;
 
 		return result;
 	}
 
-	bool Decimal::isNegative() const
+	bool Fixed128::isNegative() const
 	{
 		return !!(_value & signBitMask);
 	}
 
-	bool Decimal::isPositive() const
+	bool Fixed128::isPositive() const
 	{
 		return !(_value & signBitMask);
 	}
 
-	Decimal Decimal::operator+(const Decimal& other) const
+	Fixed128 Fixed128::operator+(const Fixed128& other) const
 	{
 		auto l = toInt();
 		auto r = other.toInt();
@@ -300,7 +300,7 @@ namespace hirzel::numbers
 		return value;
 	}
 
-	Decimal Decimal::operator-(const Decimal& other) const
+	Fixed128 Fixed128::operator-(const Fixed128& other) const
 	{
 		auto l = toInt();
 		auto r = other.toInt();
@@ -309,75 +309,103 @@ namespace hirzel::numbers
 		return value;
 	}
 
-	Decimal Decimal::operator*(const Decimal& other) const
+	Fixed128 Fixed128::operator*(const Fixed128& other) const
 	{
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = multiply(_value, other._value);
 
 		return result;
 	}
 
-	Decimal Decimal::operator/(const Decimal& other) const
+	Fixed128 Fixed128::operator/(const Fixed128& other) const
 	{
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = divide(_value, other._value);
 
 		return result;
 	}
 
-
-	Decimal& Decimal::operator+=(const Decimal& other)
+	Fixed128 Fixed128::operator^(int exponent) const
 	{
-		_value += other._value;
+		// TODO: Optimize, branching was already removed, but maybe optimizing for case exponent = 1, 0, or -1 may help
+		typedef u128(*func)(const u128&, const u128&);
+
+		constexpr func funcs[]  = { multiply, divide };
+		const bool isNegative = exponent < 0;
+		const func f = funcs[isNegative];
+		const auto multiplier = 1 - isNegative - isNegative;
+		auto result = Fixed128();
+
+		exponent *= multiplier;
+		result._value = one;
+
+		for (auto i = 0; i < exponent; ++i)
+		{
+			result._value = f(result._value, _value);
+		}
+
+		return result;
+	}
+
+	Fixed128& Fixed128::operator+=(const Fixed128& other)
+	{
+		*this = *this + other;
 
 		return *this;
 	}
 
-	Decimal& Decimal::operator-=(const Decimal& other)
+	Fixed128& Fixed128::operator-=(const Fixed128& other)
 	{
-		_value -= other._value;
+		*this = *this - other;
 
 		return *this;
 	}
 
-	Decimal& Decimal::operator*=(const Decimal& other)
+	Fixed128& Fixed128::operator*=(const Fixed128& other)
 	{
 		_value = multiply(_value, other._value);
 
 		return *this;
 	}
 
-	Decimal& Decimal::operator/=(const Decimal& other)
+	Fixed128& Fixed128::operator/=(const Fixed128& other)
 	{
 		_value = divide(_value, other._value);
 
 		return *this;
 	}
 
-	Decimal Decimal::operator-() const
+	Fixed128& Fixed128::operator^=(int exponent)
+	{
+		*this = *this ^ exponent;
+
+		return *this;
+	}
+
+	Fixed128 Fixed128::operator-() const
 	{
 		auto s = (_value & signBitMask) ^ signBitMask;
 		auto v = _value & valueBitMask;
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = s | v;
 
 		return result;
 	}
 
-	Decimal::operator bool() const
+	Fixed128::operator bool() const
 	{
 		return _value > 0;
 	}
 
-	bool Decimal::operator==(const Decimal& other) const
+	bool Fixed128::operator==(const Fixed128& other) const
 	{
 		return _value == other._value;
 	}
 
-	bool Decimal::operator!=(const Decimal& other) const
+	bool Fixed128::operator!=(const Fixed128& other) const
 	{
 		return _value != other._value;
 	}
@@ -444,7 +472,7 @@ namespace hirzel::numbers
 		out << buffer;
 	}
 
-	std::ostream& operator<<(std::ostream& out, const Decimal& decimal)
+	std::ostream& operator<<(std::ostream& out, const Fixed128& decimal)
 	{
 		const auto value = decimal._value & valueBitMask;
 		const auto integral = u64(value / one);
@@ -466,37 +494,37 @@ namespace hirzel::numbers
 		return out;
 	}
 
-	Decimal operator""_dec(const char *text, size_t length)
+	Fixed128 operator""_dec(const char *text, size_t length)
 	{
-		return Decimal::from(text, length);
+		return Fixed128::from(text, length);
 	}
 
-	Decimal operator""_dec(unsigned long long value)
+	Fixed128 operator""_dec(unsigned long long value)
 	{
 		if (value > maxIntegral)
 		{
-			throw std::invalid_argument("Decimal: Integer literal `" + std::to_string(value) + "` is too large to fit in decimal.");
+			throw std::invalid_argument("Fixed128: Integer literal `" + std::to_string(value) + "` is too large to fit in decimal.");
 		}
 
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = u128(value) * one;
 
 		return result;
 	}
 
-	Decimal operator ""_dec(long double value)
+	Fixed128 operator ""_dec(long double value)
 	{
 		auto integral = u128(value);
 
 		if (integral > maxIntegral)
 		{
-			throw std::invalid_argument("Decimal: Double literal `" + std::to_string(value) + "` is too large to create decimal.");
+			throw std::invalid_argument("Fixed128: Double literal `" + std::to_string(value) + "` is too large to create decimal.");
 		}
 
 		auto floatMantissa = value - (long double)integral;
 		auto mantissa = u64(floatMantissa * (long double)one);
-		auto result = Decimal();
+		auto result = Fixed128();
 
 		result._value = integral * one + mantissa;
 

@@ -5,7 +5,7 @@
 
 namespace hirzel::numbers
 {
-	class I128
+	class Int128
 	{
 		using u32 = uint32_t;
 		using u64 = uint64_t;
