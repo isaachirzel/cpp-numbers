@@ -5,6 +5,8 @@
 
 int main()
 {
+	test::section("Int128", test::test_int128);
+	test::section("Uint128", test::test_uint128);
 	test::section("Fixed128", test::test_fixed128);
 
 	if (!test::isTestingSuccessful())
